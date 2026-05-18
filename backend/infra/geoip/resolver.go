@@ -86,10 +86,13 @@ func InitFromEnv() {
 	v4Path := strings.TrimSpace(os.Getenv("IP2REGION_V4_XDB"))
 	v6Path := strings.TrimSpace(os.Getenv("IP2REGION_V6_XDB"))
 	if v4Path == "" {
-		v4Path = findDefaultV4XDB()
+		v4Path = findDefaultXDB("ip2region_v4.xdb")
 	}
-	if v4Path == "" {
-		log.Println("⚠️ 未找到 ip2region xdb 文件，访客「位置」将保持为空；可将 data/ip2region_v4.xdb 放到 backend/data/ 或设置 IP2REGION_V4_XDB")
+	if v6Path == "" {
+		v6Path = findDefaultXDB("ip2region_v6.xdb")
+	}
+	if v4Path == "" && v6Path == "" {
+		log.Println("⚠️ 未找到 ip2region xdb，访客「位置」将保持为空；请放置 backend/data/ip2region_v4.xdb（及可选 v6）或设置 IP2REGION_V4_XDB / IP2REGION_V6_XDB")
 		return
 	}
 
@@ -99,22 +102,34 @@ func InitFromEnv() {
 		return
 	}
 	globalResolver = &ip2regionResolver{svc: svc}
-	log.Printf("✅ ip2region 已加载 (v4: %s)", v4Path)
+	if v4Path != "" {
+		log.Printf("✅ ip2region 已加载 (v4: %s)", v4Path)
+	}
 	if v6Path != "" {
-		log.Printf("   IPv6 库: %s", v6Path)
+		log.Printf("✅ ip2region 已加载 (v6: %s)", v6Path)
+	} else {
+		log.Println("ℹ️ 未加载 ip2region IPv6 库；访客若为 IPv6 地址将无法解析位置，可下载 ip2region_v6.xdb")
 	}
 }
 
-func findDefaultV4XDB() string {
+// LookupLocation 解析 IP；已有 location 非空时原样返回。
+func LookupLocation(ip, currentLocation string) string {
+	if strings.TrimSpace(currentLocation) != "" {
+		return currentLocation
+	}
+	return Get().Lookup(ip)
+}
+
+func findDefaultXDB(filename string) string {
 	candidates := []string{
-		"data/ip2region_v4.xdb",
-		"backend/data/ip2region_v4.xdb",
-		"/app/data/ip2region_v4.xdb",
+		"data/" + filename,
+		"backend/data/" + filename,
+		"/app/data/" + filename,
 	}
 	if wd, err := os.Getwd(); err == nil {
 		candidates = append(candidates,
-			filepath.Join(wd, "data", "ip2region_v4.xdb"),
-			filepath.Join(wd, "..", "backend", "data", "ip2region_v4.xdb"),
+			filepath.Join(wd, "data", filename),
+			filepath.Join(wd, "..", "backend", "data", filename),
 		)
 	}
 	for _, p := range candidates {

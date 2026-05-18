@@ -4,15 +4,13 @@
 
 ## 获取数据文件
 
-将 **`ip2region_v4.xdb`** 放到本目录（与本文档同级）：
+将 **`ip2region_v4.xdb`** 与 **`ip2region_v6.xdb`** 放到本目录（与本文档同级）。  
+访客 IP 若为 **IPv6**（如 `2403:...`），必须提供 v6 库才能显示位置。
 
 ```bash
-# 在项目根目录执行（需 curl）
-curl -L -o backend/data/ip2region_v4.xdb \
-  https://github.com/lionsoul2014/ip2region/raw/master/data/ip2region_v4.xdb
+# 在项目根目录执行（推荐脚本，一次下齐 v4+v6）
+sh scripts/download-ip2region-xdb.sh
 ```
-
-可选 IPv6：下载 `ip2region_v6.xdb` 并设置环境变量 `IP2REGION_V6_XDB`。
 
 ## 环境变量
 

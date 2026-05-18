@@ -18,8 +18,11 @@ RUN go mod download
 COPY . .
 
 # 离线 IP 库（访客地理位置，见 backend/data/README.md）
-RUN mkdir -p data && curl -fsSL -o data/ip2region_v4.xdb \
-    https://github.com/lionsoul2014/ip2region/raw/master/data/ip2region_v4.xdb
+RUN mkdir -p data && \
+    curl -fsSL -o data/ip2region_v4.xdb \
+      https://github.com/lionsoul2014/ip2region/raw/master/data/ip2region_v4.xdb && \
+    curl -fsSL -o data/ip2region_v6.xdb \
+      https://github.com/lionsoul2014/ip2region/raw/master/data/ip2region_v6.xdb
 
 # 构建应用
 # CGO_ENABLED=0: 禁用 CGO，生成纯 Go 二进制文件
@@ -42,6 +45,7 @@ COPY --from=builder /app/backend .
 
 # ip2region 数据文件
 COPY --from=builder /app/data/ip2region_v4.xdb /app/data/ip2region_v4.xdb
+COPY --from=builder /app/data/ip2region_v6.xdb /app/data/ip2region_v6.xdb
 
 # 从构建阶段复制时区数据（可选）
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo

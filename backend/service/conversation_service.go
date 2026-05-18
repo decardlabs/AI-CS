@@ -109,7 +109,7 @@ func (s *ConversationService) InitConversation(input InitConversationInput) (*In
 				OS:               input.OS,
 				Language:         input.Language,
 				IPAddress:        input.IPAddress,
-				Location:         geoip.Get().Lookup(input.IPAddress),
+				Location:         geoip.LookupLocation(input.IPAddress, ""),
 				LastSeenAt:       &now,
 				ChatMode:         chatMode,
 				AIConfigID:       aiConfigID,
@@ -161,10 +161,15 @@ func (s *ConversationService) InitConversation(input InitConversationInput) (*In
 		}
 		if input.IPAddress != "" && conv.IPAddress == "" {
 			updates["ip_address"] = input.IPAddress
-			if conv.Location == "" {
-				if loc := geoip.Get().Lookup(input.IPAddress); loc != "" {
-					updates["location"] = loc
-				}
+		}
+		// 补全地理位置：新 IP、或历史会话仅有 IP 无 location（如升级前创建、或当时缺 v6 库）
+		ipForGeo := conv.IPAddress
+		if input.IPAddress != "" {
+			ipForGeo = input.IPAddress
+		}
+		if conv.Location == "" && ipForGeo != "" {
+			if loc := geoip.LookupLocation(ipForGeo, ""); loc != "" {
+				updates["location"] = loc
 			}
 		}
 
@@ -430,6 +435,13 @@ func (s *ConversationService) GetConversationDetail(id uint, userID uint) (*Conv
 	}
 	if conv.ConversationType == "internal" && userID > 0 && conv.AgentID != userID {
 		return nil, gorm.ErrRecordNotFound
+	}
+
+	if conv.Location == "" && conv.IPAddress != "" {
+		if loc := geoip.LookupLocation(conv.IPAddress, ""); loc != "" {
+			_ = s.conversations.UpdateFields(conv.ID, map[string]interface{}{"location": loc})
+			conv.Location = loc
+		}
 	}
 
 	summary, err := s.buildSummary(*conv, userID)
