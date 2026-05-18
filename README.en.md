@@ -151,7 +151,7 @@ Paste before `</body>`. Point iframe `src` to `https://your-domain/chat`. The pa
 
 ## Documentation
 
-- [Project overview (Chinese)](doc/AI-CS-知识库-项目总览.md)
+- None
 
 ## FAQ & Troubleshooting
 
@@ -174,7 +174,6 @@ Paste before `</body>`. Point iframe `src` to `https://your-domain/chat`. The pa
 
 - [Live demo](https://demo.cscorp.top)
 - [ip2region](https://github.com/lionsoul2014/ip2region) — offline IP geolocation used by this project  
-- [Spec-Driven Develop](https://github.com/zhu1090093659/spec_driven_develop) — structured AI dev workflow skill  
 - Suggest more links via [Issues](https://github.com/2930134478/AI-CS/issues)
 
 ## Contributing
